@@ -6,6 +6,14 @@ One GitHub Actions workflow a Series A team can copy. It fails closed on three c
 
 License: MIT. See [LICENSE](LICENSE).
 
+## Observed enforcement
+
+These runs are the evidence. Do not screenshot the checks column.
+
+**Red — deliberate demo (do not merge).** [PR #6](https://github.com/Yellow-Theme/ci-security-gates/pull/6) added `minimist@1.2.5` to `app/`. Required `deps` failed at `npm audit --omit=dev --audit-level=high`. Artifact: `npm-audit`. Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777787760
+
+**Green — happy path on `main`.** Semgrep on `app/`, gitleaks on `app/`, no deps in `app/`. Artifacts: `semgrep-sarif`, `npm-audit`, `gitleaks-sarif`. Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777643696
+
 ## What this is
 
 [`.github/workflows/security-gates.yml`](.github/workflows/security-gates.yml) runs on `pull_request` and `push`. Three jobs:
