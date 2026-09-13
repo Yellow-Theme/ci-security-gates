@@ -1,0 +1,167 @@
+name: security-gates
+
+# Synthetic reference. Not a client workflow and not an audit conclusion.
+#
+# Assessor: this file is the enforcing artifact. A failed job blocks merge
+# only after these checks are required in branch protection. Evidence is the
+# run URL plus the uploaded artifacts, not a screenshot.
+
+on: [pull_request, push]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  sast:
+    name: sast
+    # control: change management / secure SDLC
+    # Fail closed. A finding fails the job. Semgrep here is the scanner, not CodeQL.
+    # CodeQL on a private customer repo needs extra GitHub code-scanning setup.
+    # semgrep scan uses public rules and needs no SEMGREP_APP_TOKEN.
+    # semgrep ci (Semgrep Cloud) is optional and needs SEMGREP_APP_TOKEN. Do not
+    # require that token for this happy path.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Semgrep public rules
+        run: |
+          set -euo pipefail
+          pip install "semgrep==1.177.0"
+          semgrep scan --config p/ci --metrics=off --error --sarif --output semgrep.sarif app
+
+      - name: Assessor note
+        if: always()
+        run: |
+          {
+            echo "## SAST — change management / secure SDLC"
+            echo "Scanner: Semgrep \`semgrep scan --config p/ci\` on \`app/\`. No \`SEMGREP_APP_TOKEN\`."
+            echo "Not CodeQL. A required check blocks merge. Evidence is this run URL plus the \`semgrep-sarif\` artifact, not a screenshot."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Semgrep evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          if-no-files-found: warn
+
+  deps:
+    name: deps
+    # control: vulnerability management
+    # Fail closed at high. This reference app has no dependencies, so the happy
+    # path stays green without a registry token. A customer lockfile with a
+    # high advisory fails this job.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit
+        run: |
+          set -euo pipefail
+          npm audit --omit=dev --audit-level=high --json > npm-audit.json
+
+      - name: Assessor note
+        if: always()
+        run: |
+          {
+            echo "## Deps — vulnerability management"
+            echo "Command: \`npm audit --omit=dev --audit-level=high\` in \`app/\`."
+            echo "A required check blocks merge. Evidence is this run URL plus the \`npm-audit\` artifact, not a screenshot."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload npm audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit
+          path: app/npm-audit.json
+          if-no-files-found: warn
+
+  secrets:
+    name: secrets
+    # control: secrets management hygiene
+    # Fail closed. Scan app/ only. fixtures/ is the documented fail path and is
+    # not on this required job, so main stays green.
+    #
+    # The public excerpt pins gitleaks/gitleaks-action@v2. That action needs a
+    # free GITLEAKS_LICENSE on organization accounts (not on personal accounts).
+    # This reference repo is an organization, so the required check is the
+    # open-source gitleaks CLI. No license and no third-party key.
+    # A customer repo should pin the action commit SHA, not the moving v2 tag:
+    #   gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2 (2025-04-17)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          version=8.30.1
+          file="gitleaks_${version}_linux_x64.tar.gz"
+          expected="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+          curl -sSfL -o "/tmp/${file}" "https://github.com/gitleaks/gitleaks/releases/download/v${version}/${file}"
+          echo "${expected}  /tmp/${file}" | sha256sum -c -
+          tar -xzf "/tmp/${file}" -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: gitleaks on app/
+        run: |
+          set -euo pipefail
+          gitleaks detect --no-git --source app --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif --verbose
+
+      - name: Assessor note
+        if: always()
+        run: |
+          {
+            echo "## Secrets — secrets management hygiene"
+            echo "Scanner: gitleaks 8.30.1 on \`app/\` only. \`fixtures/\` is not on this required job."
+            echo "A required check blocks merge. Evidence is this run URL plus the \`gitleaks-sarif\` artifact, not a screenshot."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload gitleaks evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-sarif
+          path: gitleaks.sarif
+          if-no-files-found: warn
+
+      - name: Record optional gitleaks-action license
+        id: license
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        run: |
+          if [ -n "${GITLEAKS_LICENSE}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: gitleaks-action (optional; organization license)
+        if: steps.license.outputs.present == 'true'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: "false"

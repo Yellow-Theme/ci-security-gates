@@ -1,0 +1,16 @@
+title = "ci-security-gates required secrets job"
+
+# The required job scans app/ with this file. fixtures/ and README.md hold the
+# documented AWS example key so a reader can see a fail path. They are not
+# scanned by the required job. A customer repo should not copy this allowlist
+# unless the path is a fixture on purpose.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented fail fixture and the README that names it. Not the required gate."
+paths = [
+  '''(^|/)fixtures(/|$)''',
+  '''README\.md$''',
+]

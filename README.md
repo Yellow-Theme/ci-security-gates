@@ -1,2 +1,77 @@
 # ci-security-gates
-Reference GitHub Actions workflows: SAST, dependency, and secret scanning
+
+Synthetic reference. Not a client repository, not an audit conclusion, and not a certification.
+
+One GitHub Actions workflow a Series A team can copy. It fails closed on three checks. Comments name the control. The evidence an assessor opens is the run URL plus the uploaded artifact, not a screenshot.
+
+License: MIT. See [LICENSE](LICENSE).
+
+## What this is
+
+[`.github/workflows/security-gates.yml`](.github/workflows/security-gates.yml) runs on `pull_request` and `push`. Three jobs:
+
+| Job | Check | Control comment | Artifact |
+| --- | --- | --- | --- |
+| `sast` | `semgrep scan --config p/ci` on `app/` | change management / secure SDLC | `semgrep-sarif` |
+| `deps` | `npm audit --omit=dev --audit-level=high` in `app/` | vulnerability management | `npm-audit` |
+| `secrets` | gitleaks on `app/` only | secrets management hygiene | `gitleaks-sarif` |
+
+`app/` is a tiny Node package with no dependencies, so the happy path stays green without a registry token and without `SEMGREP_APP_TOKEN`.
+
+## What this is not
+
+- Not CodeQL. CodeQL on a private customer repo needs extra GitHub code-scanning setup. This sample uses Semgrep public rules so the job needs no app token.
+- Not Semgrep Cloud. `semgrep ci` is optional and needs `SEMGREP_APP_TOKEN`. Do not require that token for the happy path.
+- Not a passing SOC 2 report, a client system, or a screenshot pack. A green run on this repo does not mean a customer criterion is met.
+- Not a scan of `fixtures/`. That directory is the documented fail path. The required jobs do not scan it, so `main` stays green.
+- Image scanning (for example Trivy) is a later add. It is not a required job here.
+
+## Copy the workflow
+
+1. Copy `.github/workflows/security-gates.yml`. Point the Semgrep and gitleaks steps at your application directory, not this sample's `app/`.
+2. Pin third-party actions to a commit SHA. The public excerpt uses the tag `gitleaks/gitleaks-action@v2`. A customer repo should pin the SHA, not the moving tag: `gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7` (v2 as of 2025-04-17).
+3. In branch protection for `main`, require the checks `sast`, `deps`, and `secrets`. A failed job blocks merge only after those checks are required. This workflow cannot mark itself required.
+4. Keep the jobs fail closed. Do not set `continue-on-error`.
+
+The required secrets check is the open-source gitleaks CLI, pinned at 8.30.1 with a checksum. `gitleaks/gitleaks-action@v2` needs a free `GITLEAKS_LICENSE` on organization accounts (not on personal accounts). This repo is an organization, so the action step runs only when that secret is set. The CLI does not need it.
+
+## Evidence an assessor should open
+
+Open the workflow run for the change. Download `semgrep-sarif`, `npm-audit`, and `gitleaks-sarif`. The job summary names the control, states that a required check blocks merge, and says the run URL plus the artifact is the evidence.
+
+A screenshot of a green check is not the artifact.
+
+## Fixture that should fail
+
+`fixtures/` is not on the required path. `fixtures/config.env` holds the AWS documentation example key `AKIAIOSFODNN7EXAMPLE`. It is not a credential. `fixtures/eval.js` is one `eval` call. A local Semgrep rule flags it.
+
+Default gitleaks rules ignore `AKIAIOSFODNN7EXAMPLE`, so the fail command uses `fixtures/gitleaks-fail.toml`, a local rule for that documented example. The required job does not use that file.
+
+These commands are supposed to exit non-zero:
+
+```bash
+semgrep scan --config fixtures/rules --error fixtures --metrics=off
+gitleaks detect --no-git --source fixtures --config fixtures/gitleaks-fail.toml --verbose
+```
+
+`bash scripts/expect-fixture-fail.sh` runs both and exits 0 only if each tool fails the fixture. It exits 2 if a tool is not installed.
+
+The required jobs scan `app/` only. Do not point them at `fixtures/` if you want `main` to stay green.
+
+Local happy path, from this repo:
+
+```bash
+semgrep scan --config p/ci --metrics=off --error app
+cd app && npm audit --omit=dev --audit-level=high
+gitleaks detect --no-git --source app --config .gitleaks.toml --redact
+```
+
+## How this maps to Guardrails
+
+This is the shape of the Guardrails “CI security gates” deliverable: a PR check that fails closed, a control comment an assessor can read, and a run URL plus artifact instead of a slide. It is a reference, not a client install. It does not by itself satisfy a Trust Services Criterion.
+
+The companion index traces a control id to this workflow. The companion policies are the git rules, not a PDF pack.
+
+- [ci-security-gates](https://github.com/yellow-theme/ci-security-gates)
+- [policy-as-code](https://github.com/yellow-theme/policy-as-code)
+- [evidence-index](https://github.com/yellow-theme/evidence-index)

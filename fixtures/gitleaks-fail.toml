@@ -1,0 +1,11 @@
+title = "documented fail path"
+
+# Default gitleaks rules ignore AKIAIOSFODNN7EXAMPLE. This local rule flags
+# that documented example so the fail command exits non-zero. It is not the
+# required job config.
+
+[[rules]]
+id = "synthetic-example-key"
+description = "AWS documentation example access key. Fixture only. Not a credential."
+regex = '''AKIAIOSFODNN7EXAMPLE'''
+keywords = ["AKIAIOSFODNN7EXAMPLE"]

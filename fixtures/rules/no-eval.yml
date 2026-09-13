@@ -1,0 +1,6 @@
+rules:
+  - id: synthetic-no-eval
+    languages: [javascript]
+    severity: ERROR
+    message: Fixture only. eval is not allowed on the required path.
+    pattern: eval(...)

@@ -1,0 +1,2 @@
+# Documented fail fixture. The required sast job scans app/ only.
+fixtures/
