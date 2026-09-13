@@ -8,6 +8,10 @@ name: security-gates
 
 on: [pull_request, push]
 
+concurrency:
+  group: security-gates-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   actions: write
@@ -52,6 +56,7 @@ jobs:
           name: semgrep-sarif
           path: semgrep.sarif
           if-no-files-found: warn
+          retention-days: 14
 
   deps:
     name: deps
@@ -92,6 +97,7 @@ jobs:
           name: npm-audit
           path: app/npm-audit.json
           if-no-files-found: warn
+          retention-days: 14
 
   secrets:
     name: secrets
@@ -145,6 +151,7 @@ jobs:
           name: gitleaks-sarif
           path: gitleaks.sarif
           if-no-files-found: warn
+          retention-days: 14
 
       - name: Record optional gitleaks-action license
         id: license
