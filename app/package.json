@@ -4,6 +4,9 @@
   "private": true,
   "description": "Synthetic reference app for the npm audit gate. Not a client application.",
   "license": "MIT",
+  "dependencies": {
+    "minimist": "1.2.5"
+  },
   "scripts": {
     "start": "node index.js"
   }
