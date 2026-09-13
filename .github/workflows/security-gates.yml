@@ -105,12 +105,12 @@ jobs:
     # Fail closed. Scan app/ only. fixtures/ is the documented fail path and is
     # not on this required job, so main stays green.
     #
-    # The public excerpt pins gitleaks/gitleaks-action@v2. That action needs a
+    # The public excerpt pins gitleaks/gitleaks-action@v3. That action needs a
     # free GITLEAKS_LICENSE on organization accounts (not on personal accounts).
     # This reference repo is an organization, so the required check is the
     # open-source gitleaks CLI. No license and no third-party key.
-    # A customer repo should pin the action commit SHA, not the moving v2 tag:
-    #   gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2 (2025-04-17)
+    # A customer repo should pin the action commit SHA, not the moving v3 tag:
+    #   gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3 (2026-05-30)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -166,7 +166,7 @@ jobs:
 
       - name: gitleaks-action (optional; organization license)
         if: steps.license.outputs.present == 'true'
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}

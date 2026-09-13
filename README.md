@@ -31,11 +31,11 @@ On this repository, `sast`, `deps`, and `secrets` are required to merge into `ma
 ## Copy the workflow
 
 1. Copy `.github/workflows/security-gates.yml`. Point the Semgrep and gitleaks steps at your application directory, not this sample's `app/`.
-2. Pin third-party actions to a commit SHA. The public excerpt uses the tag `gitleaks/gitleaks-action@v2`. A customer repo should pin the SHA, not the moving tag: `gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7` (v2 as of 2025-04-17).
+2. Pin third-party actions to a commit SHA. The public excerpt uses the tag `gitleaks/gitleaks-action@v3`. A customer repo should pin the SHA, not the moving tag: `gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e` (v3 as of 2026-05-30).
 3. In branch protection for `main`, require the checks `sast`, `deps`, and `secrets`. A failed job blocks merge only after those checks are required. This workflow cannot mark itself required.
 4. Keep the jobs fail closed. Do not set `continue-on-error`.
 
-The required secrets check is the open-source gitleaks CLI, pinned at 8.30.1 with a checksum. `gitleaks/gitleaks-action@v2` needs a free `GITLEAKS_LICENSE` on organization accounts (not on personal accounts). This repo is an organization, so the action step runs only when that secret is set. The CLI does not need it.
+The required secrets check is the open-source gitleaks CLI, pinned at 8.30.1 with a checksum. `gitleaks/gitleaks-action@v3` needs a free `GITLEAKS_LICENSE` on organization accounts (not on personal accounts). This repo is an organization, so the action step runs only when that secret is set. The CLI does not need it.
 
 ## Evidence an assessor should open
 
