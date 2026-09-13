@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload Semgrep evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-sarif
           path: semgrep.sarif
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload npm audit evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: npm-audit
           path: app/npm-audit.json
@@ -146,7 +146,7 @@ jobs:
 
       - name: Upload gitleaks evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gitleaks-sarif
           path: gitleaks.sarif
