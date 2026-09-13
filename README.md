@@ -18,6 +18,8 @@ License: MIT. See [LICENSE](LICENSE).
 
 `app/` is a tiny Node package with no dependencies, so the happy path stays green without a registry token and without `SEMGREP_APP_TOKEN`.
 
+On this repository, `sast`, `deps`, and `secrets` are required to merge into `main`. Repository admins can bypass the ruleset to ship a reference fix. Secret scanning is enabled; push protection is off so the documented example key in `fixtures/` can stay. If scanning opens an alert on that string, dismiss it as the documented example.
+
 ## What this is not
 
 - Not CodeQL. CodeQL on a private customer repo needs extra GitHub code-scanning setup. This sample uses Semgrep public rules so the job needs no app token.
