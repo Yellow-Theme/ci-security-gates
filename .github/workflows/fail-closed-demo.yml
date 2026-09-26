@@ -39,18 +39,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Semgrep on fixtures/ (expected fail)
+      - name: Semgrep on fixtures/eval.js (expected fail)
         run: |
           set -euo pipefail
           pip install "semgrep==1.177.0"
-          semgrep scan --config fixtures/rules --error fixtures --metrics=off --sarif --output semgrep-fixtures.sarif
+          # Point at the file. .semgrepignore lists fixtures/ so a directory
+          # target scans 0 files; the required sast job still scopes to app/.
+          semgrep scan --config fixtures/rules --error fixtures/eval.js --metrics=off --sarif --output semgrep-fixtures.sarif
 
       - name: Assessor note
         if: always()
         run: |
           {
             echo "## Fail-closed demo — Semgrep on fixtures/"
-            echo "This job is supposed to fail. Fixture: \`fixtures/eval.js\` via \`fixtures/rules\`."
+            echo "This job is supposed to fail. Fixture: \`fixtures/eval.js\` via \`fixtures/rules\` (file target; \`.semgrepignore\` lists \`fixtures/\`)."
             echo "Not a required check on \`main\`. Evidence is this run URL plus \`semgrep-fixtures-sarif\`, not a screenshot."
           } >> "$GITHUB_STEP_SUMMARY"
 

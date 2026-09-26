@@ -62,7 +62,7 @@ Default gitleaks rules ignore `AKIAIOSFODNN7EXAMPLE`, so the fail command uses `
 These commands are supposed to exit non-zero:
 
 ```bash
-semgrep scan --config fixtures/rules --error fixtures --metrics=off
+semgrep scan --config fixtures/rules --error fixtures/eval.js --metrics=off
 gitleaks detect --no-git --source fixtures --config fixtures/gitleaks-fail.toml --verbose
 ```
 
