@@ -10,9 +10,11 @@ License: MIT. See [LICENSE](LICENSE).
 
 These runs are the evidence. Do not screenshot the checks column.
 
-**Red — deliberate demo (do not merge).** [PR #6](https://github.com/Yellow-Theme/ci-security-gates/pull/6) added `minimist@1.2.5` to `app/`. Required check `deps` failed at `npm audit --omit=dev --audit-level=high` and blocked merge on the PR. Artifact: `npm-audit`. Run (`pull_request`): https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777828506
+**Red — fixtures fail-closed demo.** [`.github/workflows/fail-closed-demo.yml`](.github/workflows/fail-closed-demo.yml) scans `fixtures/` only (`workflow_dispatch`, or a PR that touches `fixtures/` / that workflow). It is **not** a required check on `main`. Assessor: open this run — it should be red. Artifacts: `semgrep-fixtures-sarif`, `gitleaks-fixtures-sarif`. Why red: `fixtures/eval.js` (local Semgrep rule) and documented example key `AKIAIOSFODNN7EXAMPLE` in `fixtures/config.env` (local gitleaks rule; not a credential). Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/36275030269
 
-**Green — happy path on `main`.** Semgrep on `app/`, gitleaks on `app/`, no deps in `app/`. Artifacts: `semgrep-sarif`, `npm-audit`, `gitleaks-sarif`. Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777643696
+**Green — happy path on `main`.** Required jobs in `security-gates.yml` scan `app/` only. Semgrep on `app/`, gitleaks on `app/`, no deps in `app/`. Artifacts: `semgrep-sarif`, `npm-audit`, `gitleaks-sarif`. Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777643696
+
+Earlier deps-gate demo (optional history): [PR #6](https://github.com/Yellow-Theme/ci-security-gates/pull/6) / run https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777828506 — required `deps` failed on `minimist@1.2.5`; do not merge that branch.
 
 ## What this is
 
@@ -53,14 +55,14 @@ A screenshot of a green check is not the artifact.
 
 ## Fixture that should fail
 
-`fixtures/` is not on the required path. `fixtures/config.env` holds the AWS documentation example key `AKIAIOSFODNN7EXAMPLE`. It is not a credential. `fixtures/eval.js` is one `eval` call. A local Semgrep rule flags it.
+`fixtures/` is not on the required path. The assessor-openable red demo is [`.github/workflows/fail-closed-demo.yml`](.github/workflows/fail-closed-demo.yml) (see **Observed enforcement**). `fixtures/config.env` holds the AWS documentation example key `AKIAIOSFODNN7EXAMPLE`. It is not a credential. `fixtures/eval.js` is one `eval` call. A local Semgrep rule flags it.
 
 Default gitleaks rules ignore `AKIAIOSFODNN7EXAMPLE`, so the fail command uses `fixtures/gitleaks-fail.toml`, a local rule for that documented example. The required job does not use that file.
 
 These commands are supposed to exit non-zero:
 
 ```bash
-semgrep scan --config fixtures/rules --error fixtures --metrics=off
+semgrep scan --config fixtures/rules --error fixtures/eval.js --metrics=off
 gitleaks detect --no-git --source fixtures --config fixtures/gitleaks-fail.toml --verbose
 ```
 

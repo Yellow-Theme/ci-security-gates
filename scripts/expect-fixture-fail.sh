@@ -10,7 +10,8 @@ if ! command -v semgrep >/dev/null 2>&1; then
   missing=1
 else
   set +e
-  semgrep scan --config "$root/fixtures/rules" --error "$root/fixtures" --metrics=off
+  # File target: .semgrepignore lists fixtures/ (required sast still uses app/).
+  semgrep scan --config "$root/fixtures/rules" --error "$root/fixtures/eval.js" --metrics=off
   status=$?
   set -e
   if [ "$status" -eq 0 ]; then
