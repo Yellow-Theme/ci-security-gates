@@ -10,7 +10,7 @@ License: MIT. See [LICENSE](LICENSE).
 
 These runs are the evidence. Do not screenshot the checks column.
 
-**Red — fixtures fail-closed demo.** [`.github/workflows/fail-closed-demo.yml`](.github/workflows/fail-closed-demo.yml) scans `fixtures/` only (`workflow_dispatch`, or a PR that touches `fixtures/` / that workflow). It is **not** a required check on `main`. Assessor: open this run — it should be red. Artifacts: `semgrep-fixtures-sarif`, `gitleaks-fixtures-sarif`. Why red: `fixtures/eval.js` (local Semgrep rule) and documented example key `AKIAIOSFODNN7EXAMPLE` in `fixtures/config.env` (local gitleaks rule; not a credential). Run URL pinned after the first demo failure on this PR.
+**Red — fixtures fail-closed demo.** [`.github/workflows/fail-closed-demo.yml`](.github/workflows/fail-closed-demo.yml) scans `fixtures/` only (`workflow_dispatch`, or a PR that touches `fixtures/` / that workflow). It is **not** a required check on `main`. Assessor: open this run — it should be red. Artifacts: `semgrep-fixtures-sarif`, `gitleaks-fixtures-sarif`. Why red: `fixtures/eval.js` (local Semgrep rule) and documented example key `AKIAIOSFODNN7EXAMPLE` in `fixtures/config.env` (local gitleaks rule; not a credential). Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/36275030269
 
 **Green — happy path on `main`.** Required jobs in `security-gates.yml` scan `app/` only. Semgrep on `app/`, gitleaks on `app/`, no deps in `app/`. Artifacts: `semgrep-sarif`, `npm-audit`, `gitleaks-sarif`. Run: https://github.com/Yellow-Theme/ci-security-gates/actions/runs/34777643696
 
